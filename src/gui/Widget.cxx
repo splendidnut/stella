@@ -234,6 +234,15 @@ void Widget::setSize(const Common::Point& pos)
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void Widget::setRect(const Common::Rect& rect)
+{
+  setPos(rect.x(), rect.y());
+  setSize(rect.w(), rect.h());
+  setDirty();
+}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Widget::handleMouseEntered()
 {
   if(isEnabled())

@@ -140,6 +140,19 @@ public:
     assert(valid());
   }
 
+  constexpr void setLayoutRect(uInt32 x, uInt32 y, uInt32 w, uInt32 h) {
+    top = y;
+    left = x;
+    bottom = y + h;
+    right = x + w;
+    assert(valid());
+  }
+
+  const void printRect() {
+    std::cout << "Layout Rect: " << left << ',' << top << " - " << right << ',' << bottom << '\n';
+  }
+
+
   constexpr bool valid() const {
     return (left <= right && top <= bottom);
   }

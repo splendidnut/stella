@@ -62,6 +62,7 @@ class Widget : public GuiObject
     void setHeight(int h) override;
     virtual void setSize(int w, int h);
     virtual void setSize(const Common::Point& pos);
+    virtual void setRect(const Common::Rect& rect);
 
     virtual bool handleText(char text)                        { return false; }
     virtual bool handleKeyDown(StellaKey key, StellaMod mod)  { return false; }

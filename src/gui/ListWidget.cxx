@@ -67,6 +67,22 @@ void ListWidget::setHeight(int h)
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void ListWidget::setSize(int w, int h) {
+    h = h + 2;
+    if(_useScrollbar) {
+        w = w - ScrollBarWidget::scrollBarWidth(_font);
+        Widget::setSize(w, h);
+        _scrollBar->setHeight(h);
+        _scrollBar->setPos(_x + _w, _y);
+        _scrollBar->setDirty();
+    } else {
+        Widget::setSize(w - 1, h);
+    }
+    _rows = (h - 2) / _lineHeight;
+    recalc();
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void ListWidget::setSelected(int item)
 {
   setDirty();
