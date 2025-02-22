@@ -83,6 +83,8 @@ LauncherDialog::LauncherDialog(OSystem& osystem, DialogContainer& parent,
     addFilteringWidgets(ypos);  //-- filtering widget line has file count
   }
 
+  // keep track of Y position where ROM List will start
+  romListPosY = ypos;
   mySelectedItem = addRomWidgets(ypos) - (myUseMinimalUI ? 1 : 2);  // Highlight 'Rom Listing'
   if(!myUseMinimalUI && bottomButtons)
     addButtonWidgets(ypos);
@@ -105,7 +107,7 @@ void LauncherDialog::addTitleWidget(int &ypos)
 #if defined(RETRON77)
   ver << " for RetroN 77";
 #endif
-  new StaticTextWidget(this, _font, 1, ypos, _w - 2, fontHeight,
+  myTitleLabel = new StaticTextWidget(this, _font, 1, ypos, _w - 2, fontHeight,
                        ver.view(), TextAlign::Center);
   ypos += fontHeight + VGAP;
 }
@@ -174,6 +176,25 @@ void LauncherDialog::addFilteringWidgets(int& ypos)
     fwFilter += _w - wTotal;
 
     ypos += btnYOfs;
+
+    int midPointX = _w - HBORDER - bwSettings - randomButtonWidth - btnGap - lwFound - LBL_GAP;
+
+    //-----------------------------------
+    // COMPONENTS:
+    //  - Reload button
+    //  - 'Filter' label   (optional, only shown if there's enough room)
+    //  - Filter text field
+    //  - Subdir button
+    //   ----
+    //  - Rom count label
+    //  - Randomizer button
+    //  - 'Options' button
+
+    int myReloadButtonX = HBORDER;
+    int filterLabelX = myReloadButtonX + iconButtonWidth + LBL_GAP * 2;
+    int filterFieldX = filterLabelX + (lwFilter ?  lwFilter + LBL_GAP : 0);
+    int mySubDirsButtonX = filterFieldX + fwFilter + btnGap;
+
     // Show the reload button
     myReloadButton = new ButtonWidget(this, _font, xpos, ypos - btnYOfs,
                                       iconButtonWidth, buttonHeight, reloadIcon, kReloadCmd);
@@ -184,8 +205,8 @@ void LauncherDialog::addFilteringWidgets(int& ypos)
     // Show the "Filter" label
     if(lwFilter)
     {
-      const StaticTextWidget* s = new StaticTextWidget(this, _font, xpos, ypos, lblFilter);
-      xpos = s->getRight() + LBL_GAP;
+      myFilterLabel = new StaticTextWidget(this, _font, xpos, ypos, lblFilter);
+      xpos = myFilterLabel->getRight() + LBL_GAP;
     }
 
     // Show the filter input field that can narrow the results shown in the listing
@@ -200,15 +221,24 @@ void LauncherDialog::addFilteringWidgets(int& ypos)
                                        iconButtonWidth, buttonHeight, dummyIcon, kSubDirsCmd);
     mySubDirsButton->setToolTip("Toggle subdirectories (Ctrl+D)");
     wid.push_back(mySubDirsButton);
+
     xpos = mySubDirsButton->getRight() + btnGap + LBL_GAP;
 
-    // Show the files counter
-    myRomCount = new StaticTextWidget(this, _font, xpos, ypos,
+    //---------------------------------------------------------------------------
+    // Show the file count, Randomizer button, and Options button
+
+    int romCountX = midPointX;
+    int randomBtnX = romCountX + lwFound + LBL_GAP;
+    int settingsBtnX = randomBtnX + randomButtonWidth + btnGap;
+
+    cout << "split-point-from-left = " << xpos << '\n';
+    cout << "split-point-from-right = " << midPointX << '\n';
+
+    myRomCount = new StaticTextWidget(this, _font, romCountX, ypos,
                                       lwFound, fontHeight, "", TextAlign::Right);
-    xpos = _w - HBORDER - bwSettings - randomButtonWidth - btnGap;
 
     // Show the random ROM button
-    myRandomRomButton = new ButtonWidget(this, _font, xpos, ypos - btnYOfs,
+    myRandomRomButton = new ButtonWidget(this, _font, randomBtnX, ypos - btnYOfs,
                                          randomButtonWidth, buttonHeight, randomIcon, kLoadRndRomCmd);
 #ifndef BSPF_MACOS
     myRandomRomButton->setToolTip("Load random ROM (Alt+R)");
@@ -218,8 +248,7 @@ void LauncherDialog::addFilteringWidgets(int& ypos)
     wid.push_back(myRandomRomButton);
 
     // Show the Settings / Options button (positioned from the right)
-    xpos = _w - HBORDER - bwSettings;
-    mySettingsButton = new ButtonWidget(this, _font, xpos, ypos - btnYOfs,
+    mySettingsButton = new ButtonWidget(this, _font, settingsBtnX, ypos - btnYOfs,
                                         iconWidth, buttonHeight, settingsIcon,
                                         iconGap, lblSettings, kOptionsCmd);
     mySettingsButton-> setToolTip("Open Options dialog (Ctrl+O)");
@@ -228,6 +257,98 @@ void LauncherDialog::addFilteringWidgets(int& ypos)
     ypos = mySettingsButton->getBottom() + Dialog::vGap();
   }
   addToFocusList(wid);
+}
+
+void LauncherDialog::refreshLayoutFilter() {
+  const int lineHeight   = Dialog::lineHeight(),
+          fontHeight   = Dialog::fontHeight(),
+          fontWidth    = Dialog::fontWidth(),
+          HBORDER      = Dialog::hBorder(),
+          LBL_GAP      = Dialog::fontWidth(),
+          buttonHeight = Dialog::buttonHeight(),
+          btnGap       = fontWidth / 4,
+          btnYOfs      = (buttonHeight - lineHeight) / 2 + 1;
+  const bool smallIcon = lineHeight < 26;
+
+  // Figure out general icon button size
+  const GUI::Icon& reloadIcon = smallIcon ? GUI::icon_reload_small : GUI::icon_reload_large;
+  const GUI::Icon& randomIcon = smallIcon ? GUI::icon_random_small : GUI::icon_random_large;
+  const GUI::Icon& settingsIcon = smallIcon ? GUI::icon_settings_small : GUI::icon_settings_large;
+
+  const GUI::Icon& dummyIcon = reloadIcon;  //-- used for sizing all the other icons
+  const int iconWidth = dummyIcon.width();
+  const int iconGap = ((fontWidth + 1) & ~0b1) + 1; // round up to next even
+  const int iconButtonWidth = iconWidth + iconGap;
+  const int randomButtonWidth = randomIcon.width() + iconGap;
+
+  // Setup some constants for Settings button - icon, label, and width
+
+  const string lblSettings = "Options" + ELLIPSIS;
+  const int lwSettings = _font.getStringWidth(lblSettings);
+  const int bwSettings = iconButtonWidth + lwSettings + btnGap * 2 + 1;   // Button width for Options button
+
+  // Setup some variables for handling the Filter label + field
+  const string& lblFilter = "Filter";
+  int lwFilter = _font.getStringWidth(lblFilter);
+
+  string lblFound = "12345 items found";
+  int lwFound = _font.getStringWidth(lblFound);
+  int fwFilter = EditTextWidget::calcWidth(_font, "123456"); // at least 6 chars
+
+  // Calculate how much space everything will take
+  int xpos = HBORDER;
+  int wTotal = xpos + (iconButtonWidth * 2) + randomButtonWidth + lwFilter + fwFilter + lwFound + bwSettings
+               + LBL_GAP * 5 + btnGap * 3 + HBORDER;
+
+  // make sure there is space for at least 6 characters in the filter field
+  if(_w < wTotal)
+  {
+    wTotal -= lwFound;
+    lblFound = "12345 items";
+    myShortCount = true;
+    lwFound = _font.getStringWidth(lblFound);
+    wTotal += lwFound;
+  }
+  if(_w < wTotal)
+  {
+    wTotal -= lwFilter + LBL_GAP;
+    lwFilter = 0;
+  }
+
+  fwFilter += _w - wTotal;
+
+  //----------------------------------
+
+  int myReloadButtonX = HBORDER;
+  int filterLabelX = myReloadButtonX + iconButtonWidth + LBL_GAP * 2;
+  int filterFieldX = filterLabelX + (lwFilter ?  lwFilter + LBL_GAP : 0);
+  int mySubDirsButtonX = filterFieldX + fwFilter + btnGap;
+
+  int midPointX = _w - HBORDER - bwSettings - randomButtonWidth - btnGap - lwFound - LBL_GAP;
+
+  if (lwFilter) {
+    myFilterLabel->setSize(lwFilter, myRomCount->getHeight());
+    myFilterLabel->setLabel(lblFilter);
+  } else {
+    cerr << "Don't show filter label\n";
+    myFilterLabel->setSize(0,0);
+    myFilterLabel->setLabel("");
+  }
+  myPattern->setPos(filterFieldX, myPattern->getTop());
+  myPattern->setSize(fwFilter, myPattern->getHeight());
+  mySubDirsButton->setPos(mySubDirsButtonX, mySubDirsButton->getTop());
+
+  int romCountX = midPointX;
+  int randomBtnX = romCountX + lwFound + LBL_GAP;
+  int settingsBtnX = randomBtnX + randomButtonWidth + btnGap;
+
+  myRomCount->setPos(romCountX, myRomCount->getTop());
+  myRomCount->setSize(lwFound, myRomCount->getHeight());
+
+  myRandomRomButton->setPos(randomBtnX, myRandomRomButton->getTop());
+  mySettingsButton->setPos(settingsBtnX, mySettingsButton->getTop());
+  updateUI();
+  setDirty();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -263,13 +384,10 @@ void LauncherDialog::addPathWidgets(int& ypos)
     // Show the files counter
     myShortCount = true;
     xpos = _w - HBORDER - lwFound - LBL_GAP / 2;
-    myRomCount = new StaticTextWidget(this, _font, xpos, ypos - 1,
-      lwFound, fontHeight, "", TextAlign::Right);
+    myRomCount = new StaticTextWidget(this, _font, xpos, ypos - 3,
+      lwFound, lineHeight, "", TextAlign::Right);
+    myRomCount->setBorder(true);
 
-    auto* e = new EditTextWidget(this, _font, myNavigationBar->getRight() - 1,
-        ypos - btnYOfs, lwFound + LBL_GAP + 1, lineHeight, "");
-    e->setEditable(false);
-    e->setEnabled(false);
   } else {
     // Show Help icon at far right
     xpos = _w - HBORDER - (buttonWidth + BTN_GAP - 2);
@@ -284,6 +402,118 @@ void LauncherDialog::addPathWidgets(int& ypos)
 
   addToFocusList(wid);
 }
+
+void LauncherDialog::refreshLayoutNav() {
+  const bool bottomButtons = instance().settings().getBool("launcherbuttons");
+  const int fontWidth    = Dialog::fontWidth(),
+          lineHeight   = Dialog::lineHeight(),
+          HBORDER      = Dialog::hBorder(),
+          LBL_GAP      = fontWidth,
+          BTN_GAP      = fontWidth / 4;
+
+  const bool smallIcon = (lineHeight < 26);
+  const GUI::Icon& helpIcon = smallIcon ? GUI::icon_help_small : GUI::icon_help_large;
+  const int iconWidth = helpIcon.width();
+  const int iconGap = ((fontWidth + 1) & ~0b1) + 1; // round up to next even
+  const int buttonWidth = iconWidth + iconGap;
+
+  const string lblFound = "12345 items";
+  const int lwFound = _font.getStringWidth(lblFound);
+
+  const int totalX = _w - HBORDER * 2;
+
+  if (myUseMinimalUI) {
+    //--- resize navigation bar
+    const int wNav = totalX - (lwFound + LBL_GAP);
+    myNavigationBar->setWidth(wNav);
+
+    int romCountX = _w - HBORDER - lwFound - LBL_GAP / 2;
+    myRomCount->setPos(romCountX, myRomCount->getTop());
+
+  } else {
+    //--- resize navigation bar
+    const int wNav = totalX - buttonWidth + BTN_GAP;
+    myNavigationBar->setWidth(wNav);
+
+    // Show Help icon at far right
+    int xpos = _w - HBORDER - (buttonWidth + BTN_GAP - 2);
+    myHelpButton->setPos(xpos, myNavigationBar->getTop());
+  }
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void LauncherDialog::recalcLayoutBoxes(int y) {
+  const bool bottomButtons = instance().settings().getBool("launcherbuttons");
+  const int fontWidth = Dialog::fontWidth(),
+            VBORDER = Dialog::vBorder(),
+            HBORDER = Dialog::hBorder(),
+            VGAP = Dialog::vGap(),
+            buttonHeight = myUseMinimalUI
+                     ? -VGAP * 2
+                     : bottomButtons ? Dialog::buttonHeight() : -VGAP * 2;
+
+  // Calculate size of the list of game titles and the preview image size
+
+  const int listHeight = _h - y - VBORDER - buttonHeight - VGAP * 3;
+  const float imgZoom = getRomInfoZoom(listHeight);
+  const int imageWidth = imgZoom * TIAConstants::viewableWidth;
+  const int listWidth = _w - (imageWidth > 0 ? imageWidth + fontWidth : 0) - HBORDER * 2;
+
+  //-----------------------------------
+  // now do layout of three main boxes
+
+  romListRect.setLayoutRect(HBORDER, romListPosY, listWidth, listHeight);
+
+  // check to see if ROM image and info boxes are shown
+  if (imageWidth > 0) {
+
+    int xpos = HBORDER + listWidth + fontWidth;
+
+    // Calculate font area, and in the process the font that can be used
+    // Info font is unknown yet, but used in image label too. Assuming maximum font height.
+
+    int imageHeight = imageWidth + RomImageWidget::labelHeight(_font);
+    if (myROMInfoFont == nullptr) {
+      const Common::Size fontArea(imageWidth - fontWidth * 2,
+                                  listHeight - imageHeight - VGAP * 4);
+      setRomInfoFont(fontArea);
+    }
+    imageHeight = imageWidth + RomImageWidget::labelHeight(*myROMInfoFont);
+
+    romImageRect.setLayoutRect(xpos, romListPosY, imageWidth, imageHeight);
+
+    int infoOfs = imageHeight + myROMInfoFont->getFontHeight() / 2;
+    int infoHeight = listHeight - infoOfs;
+
+    romInfoRect.setLayoutRect(xpos, romListPosY + infoOfs, imageWidth, infoHeight);
+  }
+}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//  Refresh the layout for the ROM Launcher
+//
+//  Need to:
+//    - resize the File List (myList)
+//    - resize and reposition the ROM Image (myRomImageWidget)
+//    - resize and reposition the ROM Info box (myRomInfoWidget)
+
+void LauncherDialog::refreshLayout() {
+  recalcLayoutBoxes(romListPosY);
+  refreshLayoutNav();
+  if (myUseMinimalUI) {
+    myTitleLabel->setWidth(_w - 2);
+  } else {
+    refreshLayoutFilter();
+  }
+
+  myList->setRect(romListRect);
+  if (romImageRect.w() > 0) {
+    myRomImageWidget->setRect(romImageRect);
+    myRomInfoWidget->setRect(romInfoRect);
+  }
+}
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int LauncherDialog::addRomWidgets(int ypos)
@@ -301,15 +531,14 @@ int LauncherDialog::addRomWidgets(int ypos)
 
   // Add list with game titles
   // Before we add the list, we need to know the size of the RomInfoWidget
-  const int listHeight = _h - ypos - VBORDER - buttonHeight - VGAP * 3;
 
-  const float imgZoom = getRomInfoZoom(listHeight);
-  const int imageWidth = imgZoom * TIAConstants::viewableWidth;
-  const int listWidth = _w - (imageWidth > 0 ? imageWidth + fontWidth : 0) - HBORDER * 2;
+  recalcLayoutBoxes(ypos);
+
+  const int imageWidth = _w - romListRect.w() - (HBORDER * 3);
 
   // remember initial ROM directory for returning there via home button
   instance().settings().setValue("startromdir", getRomDir());
-  myList = new LauncherFileListWidget(this, _font, xpos, ypos, listWidth, listHeight);
+  myList = new LauncherFileListWidget(this, _font, xpos, ypos, romListRect.w(), romListRect.h());
   myList->setEditable(false);
   myList->setListMode(FSNode::ListMode::All);
   // since we cannot know how many files there are, use are really high value here
@@ -320,11 +549,10 @@ int LauncherDialog::addRomWidgets(int ypos)
   // Add ROM info area (if enabled)
   if(imageWidth > 0)
   {
-    xpos += myList->getWidth() + fontWidth;
+    xpos += romListRect.w() + fontWidth; //myList->getWidth() + fontWidth;
 
     // Initial surface size is the viewable area's width squared
-    const Common::Size imgSize(TIAConstants::viewableWidth * imgZoom,
-      TIAConstants::viewableWidth * imgZoom);
+    const Common::Size imgSize(imageWidth, imageWidth);
 
     // Calculate font area, and in the process the font that can be used
     // Infofont is unknown yet, but used in image label too. Assuming maximum font height.
@@ -338,6 +566,7 @@ int LauncherDialog::addRomWidgets(int ypos)
     imageHeight = imgSize.h + RomImageWidget::labelHeight(*myROMInfoFont);
     myRomImageWidget = new RomImageWidget(this, *myROMInfoFont,
       xpos, ypos, imageWidth, imageHeight);
+
     if(!myUseMinimalUI)
       wid.push_back(myRomImageWidget);
 

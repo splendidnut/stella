@@ -63,6 +63,8 @@ class LauncherDialog : public Dialog, CommandSender
                    int x, int y, int w, int h);
     ~LauncherDialog() override = default;
 
+    void refreshLayout() override;
+
     /**
       Get path for the currently selected file.
 
@@ -111,6 +113,10 @@ class LauncherDialog : public Dialog, CommandSender
     static constexpr int MIN_ROMINFO_CHARS = 30;
     static constexpr int MIN_ROMINFO_ROWS = 7; // full lines
     static constexpr int MIN_ROMINFO_LINES = 4; // extra lines
+
+    void recalcLayoutBoxes(int y);
+    void refreshLayoutNav();
+    void refreshLayoutFilter();
 
     void setPosition() override { positionAt(0); }
     void handleKeyDown(StellaKey key, StellaMod mod, bool repeated) override;
@@ -182,6 +188,8 @@ class LauncherDialog : public Dialog, CommandSender
     ButtonWidget*     myRandomRomButton{nullptr};
     StaticTextWidget* myRomCount{nullptr};
     ButtonWidget*     myHelpButton{nullptr};
+    StaticTextWidget* myFilterLabel{nullptr};
+    StaticTextWidget* myTitleLabel{nullptr};
 
     NavigationWidget* myNavigationBar{nullptr};
     ButtonWidget*     myReloadButton{nullptr};
@@ -201,6 +209,11 @@ class LauncherDialog : public Dialog, CommandSender
     // Show a message about the dangers of using this function
     unique_ptr<GUI::MessageBox> myConfirmMsg;
 
+    Common::Rect romListRect;
+    Common::Rect romImageRect;
+    Common::Rect romInfoRect;
+
+    int romListPosY;
     int mySelectedItem{0};
 
     bool myUseMinimalUI{false};
