@@ -145,6 +145,15 @@ void Dialog::close()
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void Dialog::resize(int newWidth, int newHeight) {
+  _w = newWidth;
+  _h = newHeight;
+  _surface->resize(_w, _h);
+  refreshLayout();
+  setDirty();
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Dialog::setTitle(string_view title)
 {
   _title = title;
@@ -547,10 +556,11 @@ void Dialog::drawDialog()
     {
       //    cerr << "Dialog::drawDialog(): w = " << _w << ", h = " << _h << " @ " << &s << "\n\n";
 
-      if(hasBackground())
+      if(hasBackground()) {
         s.fillRect(_x, _y + _th, _w, _h - _th, kDlgColor);
-      else
+      } else {
         s.invalidateRect(_x, _y + _th, _w, _h - _th);
+      }
       if(_th)
       {
         s.fillRect(_x, _y, _w, _th, kColorTitleBar);

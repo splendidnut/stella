@@ -416,7 +416,10 @@ class FrameBuffer
     int scaleX(int x) const { return myBackend->scaleX(x); }
     int scaleY(int y) const { return myBackend->scaleY(y); }
 
-  private:
+    bool resize(int width, int height);
+
+
+private:
     /**
       These methods are used to load/save position and display of the
       current window.

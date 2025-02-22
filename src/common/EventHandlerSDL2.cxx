@@ -222,11 +222,11 @@ void EventHandlerSDL2::pollEvent()
             break;
           case SDL_WINDOWEVENT_MOVED:
             handleSystemEvent(SystemEvent::WINDOW_MOVED,
-                              myEvent.window.data1, myEvent.window.data1);
+                              myEvent.window.data1, myEvent.window.data2);
             break;
           case SDL_WINDOWEVENT_RESIZED:
             handleSystemEvent(SystemEvent::WINDOW_RESIZED,
-                              myEvent.window.data1, myEvent.window.data1);
+                              myEvent.window.data1, myEvent.window.data2);
             break;
           case SDL_WINDOWEVENT_MINIMIZED:
             handleSystemEvent(SystemEvent::WINDOW_MINIMIZED);

@@ -361,13 +361,53 @@ void EventHandler::handleMouseButtonEvent(MouseButton b, bool pressed,
 #endif
 }
 
+/**
+ * Handle a window resize event
+ *
+ * This will attempt to resize the framebuffer.  If successful,
+ *   then the current window controller will be notified to
+ *   resize it's components.
+ *
+ * @param width
+ * @param height
+ */
+void EventHandler::handleWindowResize(int width, int height) {
+
+    if (myOSystem.frameBuffer().resize(width, height)) {
+
+        switch (myOSystem.eventHandler().state()) {
+            case EventHandlerState::NONE:
+            case EventHandlerState::EMULATION:
+                // Do nothing; emulation mode should be untouched
+                return;
+#ifdef GUI_SUPPORT
+            case EventHandlerState::LAUNCHER:
+                myOSystem.launcher().resizeComponents(width, height);
+                break;
+#endif
+#ifdef DEBUGGER_SUPPORT
+            case EventHandlerState::DEBUGGER:
+                myOSystem.debugger().resizeComponents(width, height);
+                break;
+#endif
+            default:
+                break;
+        }
+      // Force full render update
+      myOSystem.frameBuffer().update(FrameBuffer::UpdateMode::RERENDER);
+    }
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void EventHandler::handleSystemEvent(SystemEvent e, int, int)
+void EventHandler::handleSystemEvent(SystemEvent e, int param1, int param2)
 {
   switch(e)
   {
-    case SystemEvent::WINDOW_EXPOSED:
     case SystemEvent::WINDOW_RESIZED:
+      handleWindowResize(param1, param2);
+      break;
+
+    case SystemEvent::WINDOW_EXPOSED:
       // Force full render update
       myOSystem.frameBuffer().update(FrameBuffer::UpdateMode::RERENDER);
       break;

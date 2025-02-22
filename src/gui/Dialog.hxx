@@ -58,6 +58,7 @@ class Dialog : public GuiObject
     void clear();
     void open();
     void close();
+    void resize(int newWidth, int newHeight);
 
     bool isVisible() const override { return _visible; }
 
@@ -155,6 +156,8 @@ class Dialog : public GuiObject
 
     void draw() override { }
     void releaseFocus() override;
+
+    virtual void refreshLayout() { }
 
     virtual void handleText(char text);
     virtual void handleKeyDown(StellaKey key, StellaMod modifiers, bool repeated = false);

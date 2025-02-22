@@ -443,6 +443,7 @@ class EventHandler
       WINDOW_FOCUS_LOST
     };
     void handleSystemEvent(SystemEvent e, int data1 = 0, int data2 = 0);
+    void handleWindowResize(int width, int height);
 
     /**
       Add the given joystick to the list of physical joysticks available to

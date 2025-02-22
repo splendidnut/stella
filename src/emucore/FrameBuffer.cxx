@@ -373,6 +373,30 @@ FBInitStatus FrameBuffer::createDisplay(string_view title, BufferType type,
   return status;
 }
 
+bool FrameBuffer::resize(int width, int height) {
+    bool ableToResize = false;
+
+    // only resize if bigger than lowest resolution
+    //  TODO: figure out why an erroneous resize message is happening when Launcher is first started
+    if ((width >= 320) && (height >= 200)) {
+        saveCurrentWindowPosition();
+
+        // Initialize video mode handler, so it can know what video modes are
+        // appropriate for the requested image size
+        Common::Size size;
+        size.w = width;
+        size.h = height;
+        myVidModeHandler.setImageSize(size);
+
+        // Initialize video subsystem
+        //const string pre_about = myBackend->about();
+        const FBInitStatus status = applyVideoMode();
+
+        ableToResize = true;
+    }
+    return ableToResize;
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void FrameBuffer::update(UpdateMode mode)
 {

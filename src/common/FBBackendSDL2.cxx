@@ -275,7 +275,8 @@ bool FBBackendSDL2::setVideoMode(const VideoModeHandler::Mode& mode,
 #else
   const bool adaptRefresh = false;
 #endif
-  const uInt32 flags = SDL_WINDOW_ALLOW_HIGHDPI
+  const bool isUIMode = (mode.stretch == VideoModeHandler::Mode::Stretch::None);
+  const uInt32 flags = SDL_WINDOW_ALLOW_HIGHDPI | (isUIMode ? SDL_WINDOW_RESIZABLE : 0)
     | (fullScreen ? adaptRefresh ? SDL_WINDOW_FULLSCREEN :
     SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 
