@@ -61,6 +61,17 @@ FBInitStatus Launcher::initializeVideo()
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void Launcher::resizeComponents(int newWidth, int newHeight) {
+  const Common::Size& d = myOSystem.frameBuffer().desktopSize(BufferType::Launcher);
+  const double overscan = 1 - myOSystem.settings().getInt("tia.fs_overscan") / 100.0;
+
+  mySize.w = std::min(static_cast<uInt32>(newWidth), static_cast<uInt32>(d.w * overscan));
+  mySize.h = std::min(static_cast<uInt32>(newHeight), static_cast<uInt32>(d.h * overscan));
+
+  myBaseDialog->resize(mySize.w, mySize.h);
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 const string& Launcher::selectedRom()
 {
   return (static_cast<LauncherDialog*>(myBaseDialog))->selectedRom();

@@ -46,6 +46,11 @@ class Launcher : public DialogContainer
     FBInitStatus initializeVideo();
 
     /**
+      Resize launcher components to fit new width + height
+    */
+    void resizeComponents(int newWidth, int newHeight);
+
+    /**
       Wrapper for LauncherDialog::selectedRom() method.
     */
     const string& selectedRom();

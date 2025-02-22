@@ -112,6 +112,13 @@ FBInitStatus Debugger::initializeVideo()
   );
 }
 
+
+void Debugger::resizeComponents(int newWidth, int newHeight) {
+  mySize.w = newWidth;
+  mySize.h = newHeight;
+  myDialog->resize(newWidth, newHeight);
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 bool Debugger::start(string_view message, int address, bool read,
                      string_view toolTip)

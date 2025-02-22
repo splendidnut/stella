@@ -76,7 +76,9 @@ class Debugger : public DialogContainer
     Debugger(OSystem& osystem, Console& console);
     ~Debugger() override;
 
-  public:
+    void resizeComponents(int newWidth, int newHeight);
+
+public:
     /**
       Initialize the debugger dialog container.
     */
