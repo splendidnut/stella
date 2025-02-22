@@ -225,6 +225,7 @@ class StaticTextWidget : public Widget, public CommandSender
     void setCmd(int cmd) { _cmd = cmd; }
 
     virtual void setValue(int value);
+    void setBorder(bool showBorder);
     void setLabel(string_view label);
     void setAlign(TextAlign align) { _align = align; setDirty(); }
     const string& getLabel() const { return _label; }
@@ -244,6 +245,7 @@ class StaticTextWidget : public Widget, public CommandSender
 
   protected:
     string    _label;
+    bool      _hasBorder{false};
     bool      _editable{false};
     TextAlign _align{TextAlign::Left};
     int       _cmd{0};

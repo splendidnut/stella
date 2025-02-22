@@ -571,6 +571,11 @@ void StaticTextWidget::setValue(int value)
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void StaticTextWidget::setBorder(bool showBorder) {
+  _hasBorder = showBorder;
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void StaticTextWidget::setLabel(string_view label)
 {
   if(_label != label)
@@ -693,9 +698,17 @@ void StaticTextWidget::drawWidget(bool hilite)
 {
   FBSurface& s = _boss->dialog().surface();
 
-  s.drawString(_font, _label, _x, _y, _w,
-                isEnabled() ? _textcolor : kColor, _align, 0, true,
-                _shadowcolor, _linkStart, _linkLen, _linkUnderline && hilite);
+  // If border flag set, Draw a thin frame around us and adjust offset
+  if (_hasBorder) {
+    s.frameRect(_x, _y, _w + 2, _h + 2, kColor);
+    s.drawString(_font, _label, _x, _y + 1, _w,
+                 isEnabled() ? _textcolor : kColor, _align, 0, true,
+                 _shadowcolor, _linkStart, _linkLen, _linkUnderline && hilite);
+  } else {
+    s.drawString(_font, _label, _x, _y, _w,
+                 isEnabled() ? _textcolor : kColor, _align, 0, true,
+                 _shadowcolor, _linkStart, _linkLen, _linkUnderline && hilite);
+  }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
