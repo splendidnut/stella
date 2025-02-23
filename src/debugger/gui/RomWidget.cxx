@@ -52,6 +52,16 @@ RomWidget::RomWidget(GuiObject* boss, const GUI::Font& lfont, const GUI::Font& n
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void RomWidget::setSize(int w, int h) {
+  Widget::setSize(w, h);
+
+  int newWidth = w - 5;
+  int newHeight = h - (myBank->getHeight() + 4 + 7 + 30);
+  myRomList->setSize(newWidth, newHeight);
+  myRomList->setDirty();
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void RomWidget::loadConfig()
 {
   const Debugger& dbg = instance().debugger();

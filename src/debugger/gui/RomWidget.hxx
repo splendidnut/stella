@@ -43,6 +43,7 @@ class RomWidget : public Widget, public CommandSender
     { myListIsDirty = true; if(forcereload) loadConfig(); }
 
     void scrollTo(int line);
+    void setSize(int w, int h) override;
 
   private:
     void handleCommand(CommandSender* sender, int cmd, int data, int id) override;

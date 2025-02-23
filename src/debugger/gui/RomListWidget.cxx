@@ -75,7 +75,7 @@ RomListWidget::RomListWidget(GuiObject* boss, const GUI::Font& lfont,
   _rows = h / _lineHeight;  // NOLINT: must be initialized after _lineHeight
 
   // Create a CheckboxWidget for each row in the list
-  for(int i = 0; i < _rows; ++i)
+  for(int i = 0; i < MAX_DISASM_ROWS; ++i)
   {
     auto* t = new CheckboxWidget(boss, lfont, _x + 2, ypos, "",
         CheckboxWidget::kCheckActionCmd);
@@ -83,6 +83,7 @@ RomListWidget::RomListWidget(GuiObject* boss, const GUI::Font& lfont,
     t->setID(i);
     t->setFill(CheckboxWidget::FillType::Circle);
     t->setTextColor(kTextColorEm);
+    if (i >= _rows) t->setEnabled(false);
     ypos += _lineHeight;
 
     myCheckList.push_back(t);
@@ -114,6 +115,29 @@ RomListWidget::RomListWidget(GuiObject* boss, const GUI::Font& lfont,
     }
   };
   setTextFilter(f);
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void RomListWidget::setSize(int w, int h) {
+  // need to adjust size to allow scrollbar to fit within region
+  h = h + 2;
+  w = w - ScrollBarWidget::scrollBarWidth(_font);
+  Widget::setSize(w, h);
+
+  // make sure scrollbar is resized
+  myScrollBar->setHeight(h);
+  myScrollBar->setPos(_x + _w, _y);
+  myScrollBar->setDirty();
+
+  _rows = (h - 2) / _lineHeight;
+  if (_rows > MAX_DISASM_ROWS) _rows = MAX_DISASM_ROWS;
+
+  // adjust which Breakpoint checkboxes are enabled, based on new number of rows
+  for(int i = 0; i < MAX_DISASM_ROWS; ++i)
+  {
+    myCheckList[i]->setEnabled(i < _rows);
+  }
+  recalc();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

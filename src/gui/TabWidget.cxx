@@ -58,6 +58,16 @@ int TabWidget::getChildY() const
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void TabWidget::setSize(int w, int h) {
+  Widget::setSize(w, h);
+
+  auto *activeTabParent = _tabs[_activeTab].parentWidget;
+  if (activeTabParent) {
+    activeTabParent->setSize(w,h);
+  }
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int TabWidget::addTab(string_view title, int tabWidth)
 {
   // Add a new tab page

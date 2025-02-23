@@ -107,7 +107,6 @@ class DebuggerDialog : public Dialog
     void addSystemArea();
 
     void resizeStatusArea();
-    void resizeSystemTabArea();
 
     void calculateLayout();
 

@@ -44,6 +44,9 @@ class RomListWidget : public EditableWidget
       kGfxAsBinaryCmd    = 'GFXb',  // 'data' will be boolean
       kAddrRelocationCmd = 'ADre'   // 'data' will be boolean
     };
+    enum {
+      MAX_DISASM_ROWS = 100
+    };
 
   public:
     RomListWidget(GuiObject* boss, const GUI::Font& lfont, const GUI::Font& nfont,
@@ -59,6 +62,8 @@ class RomListWidget : public EditableWidget
 
     string getToolTip(const Common::Point& pos) const override;
     bool changedToolTip(const Common::Point& oldPos, const Common::Point& newPos) const override;
+
+    void setSize(int w, int h) override;
 
   protected:
     void handleMouseDown(int x, int y, MouseButton b, int clickCount) override;

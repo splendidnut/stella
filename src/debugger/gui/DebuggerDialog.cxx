@@ -499,23 +499,6 @@ void DebuggerDialog::addSystemTabArea()
   myTab->setActiveTab(0);
 }
 
-void DebuggerDialog::resizeSystemTabArea() {
-
-  myTab->setRect(systemTabAreaRect);
-
-  const int widWidth  = systemTabAreaRect.w();
-  const int widHeight = systemTabAreaRect.h() - myTab->getTabHeight() - 4;
-
-  //cerr << "DebuggerDialog::resizeSystemTabArea().myPrompt: " << widWidth << ", " << widHeight << '\n';
-
-  // The Prompt/console tab
-  myPrompt->setSize(widWidth - 4, widHeight);
-
-  /*for (Widget *widget : myTab->getFocusList()) {
-    widget->setSize(widWidth, widHeight);
-  }*/
-}
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void DebuggerDialog::addStatusArea()
 {
@@ -639,7 +622,7 @@ void DebuggerDialog::refreshLayout() {
 
   // left side
   myTiaOutput->setRect(tiaRect);
-  resizeSystemTabArea();
+  myTab->setRect(systemTabAreaRect);
   resizeStatusArea();
 
   // right side
@@ -688,7 +671,7 @@ void DebuggerDialog::calculateLayout() {
 
   int xRightWidth = _w - xDiv;
   int yDivCpu = SystemAreaPanel::calcHeight(*myLFont) + PADDING;
-  int romTabAreaHeight = _h - yDivCpu - PADDING * 2;
+  int romTabAreaHeight = _h - yDivCpu - PADDING;
 
   // Atari 2600 System area (CPU + RIOT Memory Display)
   // The ROM area is the full area to the right of the tabs

@@ -62,6 +62,8 @@ class TabWidget : public Widget, public CommandSender
 
     void loadConfig() override;
 
+    void setSize(int w, int h) override;
+
   protected:
     void handleMouseDown(int x, int y, MouseButton b, int clickCount) override;
     void handleMouseEntered() override {}
