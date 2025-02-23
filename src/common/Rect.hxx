@@ -124,6 +124,11 @@ public:
   constexpr uInt32 y() const { return top;  }
   constexpr Point point() const { return Point(x(), y()); }
 
+  constexpr uInt32 getLeft() const { return left; }
+  constexpr uInt32 getTop() const { return top;  }
+  constexpr uInt32 getRight() const { return right; }
+  constexpr uInt32 getBottom() const { return bottom;  }
+
   constexpr uInt32 w() const { return right - left; }
   constexpr uInt32 h() const { return bottom - top; }
   constexpr Size size() const { return Size(w(), h()); }
@@ -148,7 +153,7 @@ public:
     assert(valid());
   }
 
-  const void printRect() {
+  const void printRect() const {
     std::cout << "Layout Rect: " << left << ',' << top << " - " << right << ',' << bottom << '\n';
   }
 
