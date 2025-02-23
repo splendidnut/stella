@@ -35,6 +35,8 @@ class TiaZoomWidget;
 class CartDebugWidget;
 class CartRamWidget;
 class OptionsDialog;
+class DataGridOpsWidget;
+class SystemAreaPanel;
 
 namespace GUI {
   class MessageBox;
@@ -75,6 +77,7 @@ class DebuggerDialog : public Dialog
 
     void showFatalMessage(string_view msg);
     void saveConfig() override;
+    void refreshLayout() override;
 
   private:
     void setPosition() override { positionAt(0); }
@@ -98,14 +101,15 @@ class DebuggerDialog : public Dialog
 
     void createFont();
     void addTiaArea();
-    void addTabArea();
+    void addSystemTabArea();
     void addStatusArea();
-    void addRomArea();
+    void addRomTabArea();
+    void addSystemArea();
 
-    Common::Rect getTiaBounds() const;
-    Common::Rect getRomBounds() const;
-    Common::Rect getStatusBounds() const;
-    Common::Rect getTabBounds() const;
+    void resizeStatusArea();
+    void resizeSystemTabArea();
+
+    void calculateLayout();
 
   private:
     enum {
@@ -135,6 +139,17 @@ class DebuggerDialog : public Dialog
     EditTextWidget*  myMessageBox{nullptr};
     ButtonWidget*    myRewindButton{nullptr};
     ButtonWidget*    myUnwindButton{nullptr};
+
+    DataGridOpsWidget* opsWidget{nullptr};
+
+    SystemAreaPanel* sysAreaPanel{nullptr};
+
+    Common::Rect tiaRect;
+    Common::Rect tiaStatusRect;
+    Common::Rect systemTabAreaRect;
+    Common::Rect cpuRiotRect;
+    Common::Rect romTabAreaRect;
+
 
     unique_ptr<GUI::MessageBox> myFatalError;
     unique_ptr<OptionsDialog>   myOptions;

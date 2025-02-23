@@ -52,6 +52,7 @@
 #include "OSystem.hxx"
 #include "Console.hxx"
 #include "DebuggerDialog.hxx"
+#include "SystemAreaPanel.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 DebuggerDialog::DebuggerDialog(OSystem& osystem, DialogContainer& parent,
@@ -60,10 +61,13 @@ DebuggerDialog::DebuggerDialog(OSystem& osystem, DialogContainer& parent,
 {
   createFont();  // Font is sized according to available space
 
-  addTiaArea();
-  addTabArea();
-  addStatusArea();
-  addRomArea();
+  calculateLayout();
+
+  addTiaArea();             // Main Atari 2600 TIA display window
+  addSystemTabArea();  // Tab area containing Prompt, TIA, Audio, Input taba
+  addStatusArea();          // TIA status area
+  addSystemArea();          // Atari 2600 System area (CPU + RIOT Memory Display)
+  addRomTabArea();          // Tab area containing Code Debugger and Cartridge tabs
 
   // Inform the TIA output widget about its associated zoom widget
   myTiaOutput->setZoomWidget(myTiaZoom);
@@ -89,8 +93,7 @@ void DebuggerDialog::loadConfig()
   myTiaInfo->loadConfig();
   myTiaOutput->loadConfig();
   myTiaZoom->loadConfig();
-  myCpu->loadConfig();
-  myRam->loadConfig();
+  sysAreaPanel->loadConfig();
   myRomTab->loadConfig();
 
   myMessageBox->setText("");
@@ -446,27 +449,24 @@ void DebuggerDialog::showFatalMessage(string_view msg)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void DebuggerDialog::addTiaArea()
 {
-  const Common::Rect& r = getTiaBounds();
-  myTiaOutput =
-    new TiaOutputWidget(this, *myNFont, r.x(), r.y(), r.w(), r.h());
+  myTiaOutput = new TiaOutputWidget(this, *myNFont, tiaRect.x(), tiaRect.y(), tiaRect.w(), tiaRect.h());
 }
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void DebuggerDialog::addTabArea()
-{
-  const Common::Rect& r = getTabBounds();
-  constexpr int vBorder = 4;
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void DebuggerDialog::addSystemTabArea()
+{
   // The tab widget
   // Since there are two tab widgets in this dialog, we specifically
   // assign an ID of 0
-  myTab = new TabWidget(this, *myLFont, r.x(), r.y() + vBorder,
-                        r.w(), r.h() - vBorder);
+  myTab = new TabWidget(this, *myLFont,
+                        systemTabAreaRect.x(), systemTabAreaRect.y(),
+                        systemTabAreaRect.w(), systemTabAreaRect.h());
   myTab->setID(0);
   addTabWidget(myTab);
 
-  const int widWidth  = r.w() - vBorder;
-  const int widHeight = r.h() - myTab->getTabHeight() - vBorder - 4;
+  const int widWidth  = systemTabAreaRect.w();
+  const int widHeight = systemTabAreaRect.h() - myTab->getTabHeight() - 4;
 
   // The Prompt/console tab
   int tabID = myTab->addTab("Prompt");
@@ -499,21 +499,37 @@ void DebuggerDialog::addTabArea()
   myTab->setActiveTab(0);
 }
 
+void DebuggerDialog::resizeSystemTabArea() {
+
+  myTab->setRect(systemTabAreaRect);
+
+  const int widWidth  = systemTabAreaRect.w();
+  const int widHeight = systemTabAreaRect.h() - myTab->getTabHeight() - 4;
+
+  //cerr << "DebuggerDialog::resizeSystemTabArea().myPrompt: " << widWidth << ", " << widHeight << '\n';
+
+  // The Prompt/console tab
+  myPrompt->setSize(widWidth - 4, widHeight);
+
+  /*for (Widget *widget : myTab->getFocusList()) {
+    widget->setSize(widWidth, widHeight);
+  }*/
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void DebuggerDialog::addStatusArea()
 {
   const int lineHeight = myLFont->getLineHeight();
-  const Common::Rect& r = getStatusBounds();
   constexpr int HBORDER = 10;
   const int VGAP = lineHeight / 3;
 
-  const int xpos = r.x() + HBORDER;
-  int ypos = r.y();
-  myTiaInfo = new TiaInfoWidget(this, *myLFont, *myNFont, xpos, ypos, r.w() - HBORDER);
+  const int xpos = tiaStatusRect.x() + HBORDER;
+  int ypos = tiaStatusRect.y();
+  myTiaInfo = new TiaInfoWidget(this, *myLFont, *myNFont, xpos, ypos, tiaStatusRect.w() - HBORDER);
 
   ypos = myTiaInfo->getBottom() + VGAP;
   myTiaZoom = new TiaZoomWidget(this, *myNFont, xpos, ypos,
-                                r.w() - HBORDER, r.h() - ypos - VGAP - lineHeight + 3);
+                                tiaStatusRect.w() - HBORDER, tiaStatusRect.h() - ypos - VGAP - lineHeight + 3);
   addToFocusList(myTiaZoom->getFocusList());
 
   ypos = myTiaZoom->getBottom() + VGAP;
@@ -524,139 +540,45 @@ void DebuggerDialog::addStatusArea()
   myMessageBox->setTextColor(kTextColorEm);
 }
 
+void DebuggerDialog::resizeStatusArea() {
+  const int lineHeight = myLFont->getLineHeight();
+  constexpr int HBORDER = 10;
+  const int VGAP = lineHeight / 3;
+
+  const int xpos = tiaStatusRect.x() + HBORDER;
+  int ypos = tiaStatusRect.y();
+  myTiaInfo->setPos(xpos, ypos);
+  myTiaInfo->setWidth(tiaStatusRect.w());
+
+  ypos = myTiaInfo->getBottom() + VGAP;
+  myTiaZoom->setPos(xpos, ypos);
+  //myTiaZoom->setSize(r.w() - HBORDER, r.h() - ypos - VGAP - lineHeight + 3);
+
+  ypos = myTiaZoom->getBottom() + VGAP;
+  myMessageBox->setPos(xpos, ypos);
+  myMessageBox->setSize(myTiaZoom->getWidth(), lineHeight);
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void DebuggerDialog::addRomArea()
+void DebuggerDialog::addSystemArea() {
+  sysAreaPanel = new SystemAreaPanel(this, *myLFont, *myNFont,
+                                     cpuRiotRect.x(), cpuRiotRect.y(), cpuRiotRect.w(), cpuRiotRect.h());
+  myRewindButton = sysAreaPanel->getRewindButton();
+  myUnwindButton = sysAreaPanel->getUnwindButton();
+  addToFocusList(sysAreaPanel->getFocusList());
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Disassembly area
+
+void DebuggerDialog::addRomTabArea()
 {
-  static constexpr std::array<uInt32, 11> LEFT_ARROW = {
-    0b0000010,
-    0b0000110,
-    0b0001110,
-    0b0011110,
-    0b0111110,
-    0b1111110,
-    0b0111110,
-    0b0011110,
-    0b0001110,
-    0b0000110,
-    0b0000010
-  };
-  static constexpr std::array<uInt32, 11> RIGHT_ARROW = {
-    0b0100000,
-    0b0110000,
-    0b0111000,
-    0b0111100,
-    0b0111110,
-    0b0111111,
-    0b0111110,
-    0b0111100,
-    0b0111000,
-    0b0110000,
-    0b0100000
-  };
-
-  const Common::Rect& r = getRomBounds();
-  constexpr int VBORDER = 4;
-  WidgetArray wid1, wid2;
-  ButtonWidget* b = nullptr;
-
-  int bwidth  = myLFont->getStringWidth("Frame +1 "),
-      bheight = myLFont->getLineHeight() + 2;
-  int buttonX = r.x() + r.w() - bwidth - 5, buttonY = r.y() + 5;
-
-  b = new ButtonWidget(this, *myLFont, buttonX, buttonY,
-                       bwidth, bheight, "Step", kDDStepCmd, true);
-  b->setToolTip("Ctrl+S");
-  b->setHelpAnchor("GlobalButtons", true);
-  wid2.push_back(b);
-  buttonY += bheight + 4;
-  b = new ButtonWidget(this, *myLFont, buttonX, buttonY,
-                       bwidth, bheight, "Trace", kDDTraceCmd, true);
-  b->setToolTip("Ctrl+T");
-  b->setHelpAnchor("GlobalButtons", true);
-  wid2.push_back(b);
-  buttonY += bheight + 4;
-  b = new ButtonWidget(this, *myLFont, buttonX, buttonY,
-                       bwidth, bheight, "Scan +1", kDDSAdvCmd, true);
-  b->setToolTip("Ctrl+L");
-  b->setHelpAnchor("GlobalButtons", true);
-  wid2.push_back(b);
-  buttonY += bheight + 4;
-  b = new ButtonWidget(this, *myLFont, buttonX, buttonY,
-                       bwidth, bheight, "Frame +1", kDDAdvCmd, true);
-  b->setToolTip("Ctrl+F");
-  b->setHelpAnchor("GlobalButtons", true);
-  wid2.push_back(b);
-  buttonY += bheight + 4;
-  b = new ButtonWidget(this, *myLFont, buttonX, buttonY,
-                       bwidth, bheight, "Run", kDDRunCmd);
-  b->setToolTip("Escape");
-  b->setHelpAnchor("GlobalButtons", true);
-  wid2.push_back(b);
-
-  bwidth = bheight; // 7 + 12;
-  bheight = bheight * 3 + 4 * 2;
-  buttonX -= (bwidth + 5);
-  buttonY = r.y() + 5;
-
-  myRewindButton =
-    new ButtonWidget(this, *myLFont, buttonX, buttonY,
-                     bwidth, bheight, LEFT_ARROW.data(), 7, 11, kDDRewindCmd, true);
-  myRewindButton->setToolTip("Alt[+Shift]+Left");
-  myRewindButton->setHelpAnchor("GlobalButtons", true);
-  myRewindButton->clearFlags(Widget::FLAG_ENABLED);
-
-  buttonY += bheight + 4;
-  bheight = (myLFont->getLineHeight() + 2) * 2 + 4 * 1;
-
-  myUnwindButton =
-    new ButtonWidget(this, *myLFont, buttonX, buttonY,
-                     bwidth, bheight, RIGHT_ARROW.data(), 7, 11, kDDUnwindCmd, true);
-  myUnwindButton->setToolTip("Alt[+Shift]+Right");
-  myUnwindButton->setHelpAnchor("GlobalButtons", true);
-  myUnwindButton->clearFlags(Widget::FLAG_ENABLED);
-
-  int xpos = buttonX - 8*myLFont->getMaxCharWidth() - 20, ypos = 30;
-
-  bwidth = myLFont->getStringWidth("Options " + ELLIPSIS);
-  bheight = myLFont->getLineHeight() + 2;
-
-  b = new ButtonWidget(this, *myLFont, xpos, r.y() + 5, bwidth, bheight,
-                       "Options" + ELLIPSIS, kDDOptionsCmd);
-  wid1.push_back(b);
-  wid1.push_back(myRewindButton);
-  wid1.push_back(myUnwindButton);
-
-  auto* ops = new DataGridOpsWidget(this, *myLFont, xpos, ypos);
-
-  const int max_w = xpos - r.x() - 10;
-  xpos = r.x() + 10;  ypos = 5;
-  myCpu = new CpuWidget(this, *myLFont, *myNFont, xpos, ypos, max_w);
-  addToFocusList(myCpu->getFocusList());
-
-  addToFocusList(wid1);
-  addToFocusList(wid2);
-
-  xpos = r.x() + 10;  ypos += myCpu->getHeight() + 10;
-  myRam = new RiotRamWidget(this, *myLFont, *myNFont, xpos, ypos, r.w() - 10);
-  //myRam->setHelpAnchor("M6532", true); // TODO: doesn't work
-  addToFocusList(myRam->getFocusList());
-
-  // Add the DataGridOpsWidget to any widgets which contain a
-  // DataGridWidget which we want controlled
-  myCpu->setOpsWidget(ops);
-  myRam->setOpsWidget(ops);
-
-  ////////////////////////////////////////////////////////////////////
-  // Disassembly area
-
-  xpos = r.x() + VBORDER;  ypos += myRam->getHeight() + 5;
-  const int tabWidth  = r.w() - VBORDER - 1;
-  const int tabHeight = r.h() - ypos - 1;
+  const int tabWidth  = romTabAreaRect.w();
+  const int tabHeight = romTabAreaRect.h();
 
   // Since there are two tab widgets in this dialog, we specifically
   // assign an ID of 1
-  myRomTab = new TabWidget(
-      this, *myLFont, xpos, ypos, tabWidth, tabHeight);
+  myRomTab = new TabWidget(this, *myLFont, romTabAreaRect.x(), romTabAreaRect.y(), tabWidth, tabHeight);
   myRomTab->setID(1);
   addTabWidget(myRomTab);
 
@@ -703,7 +625,7 @@ void DebuggerDialog::addRomArea()
         myCartRam->setHelpAnchor("CartridgeRAMInformation", true);
         myRomTab->setParentWidget(tabID, myCartRam);
         addToFocusList(myCartRam->getFocusList(), myRomTab, tabID);
-        myCartRam->setOpsWidget(ops);
+        myCartRam->setOpsWidget(opsWidget);
       }
     }
   }
@@ -712,51 +634,67 @@ void DebuggerDialog::addRomArea()
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Common::Rect DebuggerDialog::getTiaBounds() const
-{
+void DebuggerDialog::refreshLayout() {
+  calculateLayout();
+
+  // left side
+  myTiaOutput->setRect(tiaRect);
+  resizeSystemTabArea();
+  resizeStatusArea();
+
+  // right side
+  if (sysAreaPanel != nullptr) {
+    sysAreaPanel->setRect(cpuRiotRect);
+  }
+  myRomTab->setRect(romTabAreaRect);
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Calculate layout for the debugger window
+//
+// Areas:
+//   - Main Atari 2600 TIA display window
+//   - TIA status area
+//   - Tab area containing Prompt, TIA, Audio, Input tabs
+//   - Atari 2600 System area (CPU + RIOT Memory Display)
+//   - Tab area containing Code Debugger and Cartridge tabs
+
+void DebuggerDialog::calculateLayout() {
+  constexpr int PADDING = 4;
+
   // The area showing the TIA image (NTSC and PAL supported, up to 274 lines without scaling)
-  return {
-    0, 0, 320,
-    std::max<uInt32>(FrameManager::Metrics::baseHeightPAL, _h * 0.35)
-  };
-}
+  int tiaHeight = std::max<uInt32>(FrameManager::Metrics::baseHeightPAL, _h * 0.35);
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Common::Rect DebuggerDialog::getRomBounds() const
-{
-  // The ROM area is the full area to the right of the tabs
-  const Common::Rect& status = getStatusBounds();
-  return {
-    status.x() + status.w() + 1, 0,
-    static_cast<uInt32>(_w), static_cast<uInt32>(_h)
-  };
-}
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Common::Rect DebuggerDialog::getStatusBounds() const
-{
   // The status area is the full area to the right of the TIA image
   // extending as far as necessary
   // 30% of any space above 1030 pixels will be allocated to this area
-  const Common::Rect& tia = getTiaBounds();
 
-  return {
-      tia.x() + tia.w() + 1,
-      0,
-      tia.x() + tia.w() + 225 + (_w > 1030 ? static_cast<int>(0.35 * (_w - 1030)) : 0),
-      tia.y() + tia.h()
-  };
-}
+  int statusAreaExtraWidth = (_w > 1030 ? static_cast<int>(0.35 * (_w - 1030)) : 0);
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Common::Rect DebuggerDialog::getTabBounds() const
-{
-  // The tab area is the full area below the TIA image
-  const Common::Rect& tia    = getTiaBounds();
-  const Common::Rect& status = getStatusBounds();
+  // First, set layout Rects for main Atari 2600 TIA output display and frame status area
+  tiaRect.setLayoutRect(0, 0, 320, tiaHeight);
+  tiaStatusRect.setLayoutRect(tiaRect.getRight() + 1, 0, 225 + statusAreaExtraWidth, tiaRect.h() + PADDING);
 
-  return {
-    0, tia.y() + tia.h() + 1,
-    status.x() + status.w() + 1, static_cast<uInt32>(_h)
-  };
+  // Calculate vertical division bar
+  int xDiv = tiaStatusRect.getRight() + PADDING;
+  int yDivTia = std::max<uInt32>(tiaRect.getBottom(), tiaStatusRect.getBottom()) + PADDING*2;
+
+  // Tab area containing Prompt, TIA, Audio, Input tabs
+  systemTabAreaRect.setLayoutRect(PADDING, yDivTia,
+                                  xDiv - PADDING*2, _h - yDivTia - PADDING);
+
+  //-------------------------------------------
+  //------------------- Right side
+
+  int xRightWidth = _w - xDiv;
+  int yDivCpu = SystemAreaPanel::calcHeight(*myLFont) + PADDING;
+  int romTabAreaHeight = _h - yDivCpu - PADDING * 2;
+
+  // Atari 2600 System area (CPU + RIOT Memory Display)
+  // The ROM area is the full area to the right of the tabs
+  cpuRiotRect.setLayoutRect(xDiv, 0, xRightWidth, yDivCpu);
+
+  // Tab area containing Code Debugger and Cartridge tabs
+  // The ROM area is the full area to the right of the tabs
+  romTabAreaRect.setLayoutRect(xDiv, yDivCpu, xRightWidth - PADDING, romTabAreaHeight);
 }

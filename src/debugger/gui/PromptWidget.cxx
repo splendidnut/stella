@@ -68,15 +68,20 @@ PromptWidget::PromptWidget(GuiObject* boss, const GUI::Font& font,
   setHelpAnchor("PromptTab", true);
 }
 
+void PromptWidget::setSize(int w, int h) {
+  // TODO: Until the console text area can support resizing, nothing needs to be done here
+  //       Currently, this blocks resizing events from affecting the prompt area.
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void PromptWidget::drawWidget(bool hilite)
 {
-//cerr << "PromptWidget::drawWidget\n";
+
   ColorId fgcolor{}, bgcolor{};
   FBSurface& s = _boss->dialog().surface();
 
   // Draw text
-  const int start = _scrollLine - _linesPerPage + 1;
+  const int start = (_scrollLine > _linesPerPage) ? _scrollLine - _linesPerPage + 1 : 0;
   int y = _y + 2;
 
   for (int line = 0; line < _linesPerPage; ++line)

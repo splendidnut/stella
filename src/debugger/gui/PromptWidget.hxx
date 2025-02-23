@@ -55,6 +55,8 @@ class PromptWidget : public Widget, public CommandSender
 
     bool isLoaded() const { return !_firstTime; }
 
+    void setSize(int w, int h);
+
   protected:
     ATTRIBUTE_FMT_PRINTF int printf(const char* format, ...);
     ATTRIBUTE_FMT_PRINTF int vprintf(const char* format, va_list argptr);
