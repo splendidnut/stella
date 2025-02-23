@@ -308,6 +308,8 @@ void TabWidget::drawWidget(bool hilite)
     // fill empty right space
     s.hLine(x - kTabSpacing + 1, _y + _tabHeight, _x + _w - 1, kWidColor);
     s.hLine(_x, _y + _h - 1, _x + _w - 1, kBGColorLo);
+    s.vLine(_x, _y, _y + _h - 1, kBGColorHi);
+    s.vLine(_x + _w - 1, _y + _tabHeight, _y + _h - 1, kBGColorLo);
 
     clearDirty();
     // Make all child widgets of currently active tab dirty
