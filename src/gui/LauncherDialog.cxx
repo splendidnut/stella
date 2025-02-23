@@ -224,15 +224,16 @@ void LauncherDialog::addFilteringWidgets(int& ypos)
 
     xpos = mySubDirsButton->getRight() + btnGap + LBL_GAP;
 
+    // USE FOR DEBUGGING:
+    // cout << "split-point-from-left = " << xpos << '\n';
+    // cout << "split-point-from-right = " << midPointX << '\n';
+
     //---------------------------------------------------------------------------
     // Show the file count, Randomizer button, and Options button
 
     int romCountX = midPointX;
     int randomBtnX = romCountX + lwFound + LBL_GAP;
     int settingsBtnX = randomBtnX + randomButtonWidth + btnGap;
-
-    cout << "split-point-from-left = " << xpos << '\n';
-    cout << "split-point-from-right = " << midPointX << '\n';
 
     myRomCount = new StaticTextWidget(this, _font, romCountX, ypos,
                                       lwFound, fontHeight, "", TextAlign::Right);
