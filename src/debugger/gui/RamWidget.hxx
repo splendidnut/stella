@@ -45,6 +45,9 @@ class RamWidget : public Widget, public CommandSender
 
     virtual string getLabel(int addr) const = 0;
 
+    // Get total height of this widget based on font provided
+    static int calcHeight(const GUI::Font& font, int numRows);
+
   private:
     // To be implemented by derived classes
     virtual uInt8 getValue(int addr) const = 0;

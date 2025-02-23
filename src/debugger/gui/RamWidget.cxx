@@ -193,6 +193,20 @@ RamWidget::RamWidget(GuiObject* boss, const GUI::Font& lfont, const GUI::Font& n
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int RamWidget::calcHeight(const GUI::Font &font, int numRows) {
+  const int myLineHeight = font.getLineHeight();
+  const int myFontHeight = font.getFontHeight();
+  const int VGAP = myFontHeight / 4;
+
+  // For smaller grids, make sure RAM cell detail fields are below the RESET button
+  int rowCnt = numRows < 8 ? 9 : numRows + 1;
+  int ypos = rowCnt * myLineHeight + VGAP * 2;
+
+  int totalHeight = ypos + myLineHeight;
+  return totalHeight;
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 RamWidget::~RamWidget()  // NOLINT (we need an empty d'tor)
 {
 }

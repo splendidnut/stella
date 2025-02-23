@@ -38,6 +38,9 @@ class CpuWidget : public Widget, public CommandSender
     void setOpsWidget(DataGridOpsWidget* w);
     void loadConfig() override;
 
+    // Get total height of this widget based on font provided
+    static int calcHeight(const GUI::Font& font);
+
   private:
     void handleCommand(CommandSender* sender, int cmd, int data, int id) override;
 

@@ -152,6 +152,15 @@ CpuWidget::CpuWidget(GuiObject* boss, const GUI::Font& lfont, const GUI::Font& n
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+int CpuWidget::calcHeight(const GUI::Font &font) {
+  const int CPU_TEXT_ROWS = 6;
+  const int PADDING = font.getFontHeight();
+
+  return (CPU_TEXT_ROWS * font.getLineHeight()) + PADDING;
+}
+
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CpuWidget::setOpsWidget(DataGridOpsWidget* w)
 {
   myPCGrid->setOpsWidget(w);
