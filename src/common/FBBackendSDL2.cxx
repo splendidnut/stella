@@ -309,6 +309,7 @@ bool FBBackendSDL2::setVideoMode(const VideoModeHandler::Mode& mode,
   {
     myWindow = SDL_CreateWindow(myScreenTitle.c_str(), posX, posY,
                                 mode.screenS.w, mode.screenS.h, flags);
+    SDL_SetWindowMinimumSize(myWindow, 640, 480);
     if(myWindow == nullptr)
     {
       const string msg = "ERROR: Unable to open SDL window: " + string(SDL_GetError());
