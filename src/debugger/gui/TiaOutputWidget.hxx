@@ -56,7 +56,7 @@ class TiaOutputWidget : public Widget, public CommandSender
     Common::Point getToolTipIndex(const Common::Point& pos) const;
 
   private:
-    unique_ptr<ContextMenu> myMenu;
+    unique_ptr<ContextMenu> myMenu{nullptr};
     TiaZoomWidget* myZoom{nullptr};
 
     int myClickX{0}, myClickY{0};
