@@ -83,6 +83,7 @@ MODULE_OBJS := \
         src/debugger/gui/RomListWidget.o \
         src/debugger/gui/RomWidget.o \
         src/debugger/gui/SaveKeyWidget.o \
+        src/debugger/gui/SystemAreaPanel.o \
         src/debugger/gui/TiaInfoWidget.o \
         src/debugger/gui/TiaOutputWidget.o \
         src/debugger/gui/TiaWidget.o \
