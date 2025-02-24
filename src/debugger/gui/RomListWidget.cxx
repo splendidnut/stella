@@ -205,6 +205,9 @@ int RomListWidget::findItem(int x, int y) const
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void RomListWidget::recalc()
 {
+  if (myDisasm == nullptr)
+    return;
+
   const int size = static_cast<int>(myDisasm->list.size());
 
   _currentPos = BSPF::clamp(_currentPos, 0, size - 1);

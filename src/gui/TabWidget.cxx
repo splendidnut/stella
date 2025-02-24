@@ -63,7 +63,7 @@ void TabWidget::setSize(int w, int h) {
 
   auto *activeTabParent = _tabs[_activeTab].parentWidget;
   if (activeTabParent) {
-    activeTabParent->setSize(w,h);
+    activeTabParent->setSize(w - 4, h - _tabHeight - 4);
   }
 }
 
@@ -116,8 +116,14 @@ void TabWidget::setActiveTab(int tabID, bool show)
     _tabs[_activeTab].firstWidget = _firstWidget;
   }
 
-  if(_activeTab != tabID)
+  if(_activeTab != tabID) {
+    // make sure new tab gets sized correctly
+    auto *activeTabParent = _tabs[tabID].parentWidget;
+    if (activeTabParent) {
+      activeTabParent->setSize(_w - 4, _h - _tabHeight - 4);
+    }
     setDirty();
+  }
 
   _activeTab = tabID;
   _firstWidget  = _tabs[tabID].firstWidget;

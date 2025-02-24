@@ -64,7 +64,7 @@ DebuggerDialog::DebuggerDialog(OSystem& osystem, DialogContainer& parent,
   calculateLayout();
 
   addTiaArea();             // Main Atari 2600 TIA display window
-  addSystemTabArea();  // Tab area containing Prompt, TIA, Audio, Input taba
+  addSystemTabArea();       // Tab area containing Prompt, TIA, Audio, Input taba
   addStatusArea();          // TIA status area
   addSystemArea();          // Atari 2600 System area (CPU + RIOT Memory Display)
   addRomTabArea();          // Tab area containing Code Debugger and Cartridge tabs
@@ -465,13 +465,13 @@ void DebuggerDialog::addSystemTabArea()
   myTab->setID(0);
   addTabWidget(myTab);
 
-  const int widWidth  = systemTabAreaRect.w();
+  const int widWidth  = systemTabAreaRect.w() - 4;
   const int widHeight = systemTabAreaRect.h() - myTab->getTabHeight() - 4;
 
   // The Prompt/console tab
   int tabID = myTab->addTab("Prompt");
   myPrompt = new PromptWidget(myTab, *myNFont,
-                              2, 2, widWidth - 4, widHeight);
+                              2, 2, widWidth, widHeight);
   myTab->setParentWidget(tabID, myPrompt);
   addToFocusList(myPrompt->getFocusList(), myTab, tabID);
 
@@ -556,19 +556,18 @@ void DebuggerDialog::addSystemArea() {
 
 void DebuggerDialog::addRomTabArea()
 {
-  const int tabWidth  = romTabAreaRect.w();
-  const int tabHeight = romTabAreaRect.h();
-
   // Since there are two tab widgets in this dialog, we specifically
   // assign an ID of 1
-  myRomTab = new TabWidget(this, *myLFont, romTabAreaRect.x(), romTabAreaRect.y(), tabWidth, tabHeight);
+  myRomTab = new TabWidget(this, *myLFont, romTabAreaRect.x(), romTabAreaRect.y(), romTabAreaRect.w(), romTabAreaRect.h());
   myRomTab->setID(1);
   addTabWidget(myRomTab);
 
+  const int tabWidth  = romTabAreaRect.w() - 1;
+  const int tabHeight = romTabAreaRect.h() - myRomTab->getTabHeight() - 2;
+
   // The main disassembly tab
   int tabID = myRomTab->addTab("  Disassembly  ", TabWidget::AUTO_WIDTH);
-  myRom = new RomWidget(myRomTab, *myLFont, *myNFont, 2, 2, tabWidth - 1,
-                        tabHeight - myRomTab->getTabHeight() - 2);
+  myRom = new RomWidget(myRomTab, *myLFont, *myNFont, 2, 2, tabWidth, tabHeight);
   myRom->setHelpAnchor("Disassembly", true);
   myRomTab->setParentWidget(tabID, myRom);
   addToFocusList(myRom->getFocusList(), myRomTab, tabID);
@@ -576,8 +575,8 @@ void DebuggerDialog::addRomTabArea()
   // The 'cart-specific' information tab (optional)
   tabID = myRomTab->addTab(" " + instance().console().cartridge().name() + " ", TabWidget::AUTO_WIDTH);
   myCartInfo = instance().console().cartridge().infoWidget(
-    myRomTab, *myLFont, *myNFont, 2, 2, tabWidth - 1,
-    tabHeight - myRomTab->getTabHeight() - 2);
+    myRomTab, *myLFont, *myNFont, 2, 2, tabWidth, tabHeight);
+
   if(myCartInfo != nullptr)
   {
     //myCartInfo->setHelpAnchor("BankswitchInformation", true); // TODO: doesn't work
@@ -588,8 +587,8 @@ void DebuggerDialog::addRomTabArea()
 
   // The 'cart-specific' state tab
   myCartDebug = instance().console().cartridge().debugWidget(
-        myRomTab, *myLFont, *myNFont, 2, 2, tabWidth - 1,
-        tabHeight - myRomTab->getTabHeight() - 2);
+        myRomTab, *myLFont, *myNFont, 2, 2, tabWidth, tabHeight);
+
   if(myCartDebug)  // TODO - make this always non-null
   {
     myRomTab->setHelpAnchor("BankswitchInformation", true);
@@ -600,9 +599,7 @@ void DebuggerDialog::addRomTabArea()
     if (myCartDebug->internalRamSize() > 0)
     {
       tabID = myRomTab->addTab(myCartDebug->tabLabel(), TabWidget::AUTO_WIDTH);
-      myCartRam =
-        new CartRamWidget(myRomTab, *myLFont, *myNFont, 2, 2, tabWidth - 1,
-                tabHeight - myRomTab->getTabHeight() - 2, *myCartDebug);
+      myCartRam = new CartRamWidget(myRomTab, *myLFont, *myNFont, 2, 2, tabWidth, tabHeight, *myCartDebug);
       if(myCartRam)  // TODO - make this always non-null
       {
         myCartRam->setHelpAnchor("CartridgeRAMInformation", true);

@@ -69,8 +69,19 @@ PromptWidget::PromptWidget(GuiObject* boss, const GUI::Font& font,
 }
 
 void PromptWidget::setSize(int w, int h) {
-  // TODO: Until the console text area can support resizing, nothing needs to be done here
-  //       Currently, this blocks resizing events from affecting the prompt area.
+
+  // Exclude scrollbar from the Widget size
+  int newWidth = w - ScrollBarWidget::scrollBarWidth(_font) - 4;
+  h = h - 4;
+  Widget::setSize(newWidth, h);
+
+  // Resize text area.
+  _linesPerPage = (_h - 2) / _kConsoleLineHeight;
+
+  // make sure scrollbar is resized
+  _scrollBar->setHeight(h);
+  _scrollBar->setPos(_x + _w, _y);
+  _scrollBar->setDirty();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

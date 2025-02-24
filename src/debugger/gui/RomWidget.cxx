@@ -55,8 +55,8 @@ RomWidget::RomWidget(GuiObject* boss, const GUI::Font& lfont, const GUI::Font& n
 void RomWidget::setSize(int w, int h) {
   Widget::setSize(w, h);
 
-  int newWidth = w - 5;
-  int newHeight = h - (myBank->getHeight() + 4 + 7 + 30);
+  int newWidth = w - 4;
+  int newHeight = h - (myBank->getHeight() + 7 + 4 + 2);  // magic numbers from constructor above
   myRomList->setSize(newWidth, newHeight);
   myRomList->setDirty();
 }
