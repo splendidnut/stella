@@ -117,9 +117,9 @@ void TabWidget::setActiveTab(int tabID, bool show)
   }
 
   if(_activeTab != tabID) {
-    // make sure new tab gets sized correctly
+    // make sure new tab gets sized correctly (also make sure to ignore dummy parents!!!)
     auto *activeTabParent = _tabs[tabID].parentWidget;
-    if (activeTabParent) {
+    if (activeTabParent != nullptr && (activeTabParent->getWidth()+activeTabParent->getHeight() > 0)) {
       activeTabParent->setSize(_w - 4, _h - _tabHeight - 4);
     }
     setDirty();
