@@ -381,16 +381,17 @@ bool FrameBuffer::resize(int width, int height) {
     if ((width >= 320) && (height >= 200)) {
         saveCurrentWindowPosition();
 
-        // Initialize video mode handler, so it can know what video modes are
-        // appropriate for the requested image size
+        // Send new size information to video mode handler
         Common::Size size;
         size.w = width;
         size.h = height;
         myVidModeHandler.setImageSize(size);
 
-        // Initialize video subsystem
-        //const string pre_about = myBackend->about();
-        const FBInitStatus status = applyVideoMode();
+        // Rebuild video mode and set it active
+        const Settings& s = myOSystem.settings();
+        const bool inTIAMode = myOSystem.eventHandler().inTIAMode();
+        const VideoModeHandler::Mode& mode = myVidModeHandler.buildMode(s, inTIAMode, myBezel->info());
+        myActiveVidMode = mode;
 
         ableToResize = true;
     }
