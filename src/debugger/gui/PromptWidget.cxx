@@ -927,9 +927,10 @@ void PromptWidget::drawCaret()
   if(_scrollLine < line)
     return;
 
-  const int displayLine = line - _scrollLine + _linesPerPage - 1,
-                          x = _x + 1 + (_currentPos % _lineWidth) * _kConsoleCharWidth,
-                          y = _y + displayLine * _kConsoleLineHeight;
+  const int start = (_scrollLine > _linesPerPage) ? _scrollLine - _linesPerPage + 1 : 0;
+  const int displayLine = line - start,
+      x = _x + 1 + (_currentPos % _lineWidth) * _kConsoleCharWidth,
+      y = _y + displayLine * _kConsoleLineHeight;
 
   const char c = buffer(_currentPos); //FIXME: int to char??
   s.fillRect(x, y, _kConsoleCharWidth, _kConsoleLineHeight, kTextColor);
