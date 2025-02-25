@@ -94,6 +94,39 @@ int SystemAreaPanel::calcHeight(const GUI::Font& font) {
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void SystemAreaPanel::setSize(int w, int h) {
+  Widget::setSize(w, h);
+
+  // button sizes
+  const int bwidth  = _font.getStringWidth("Frame +1 ");
+  const int bwidth2 = _font.getStringWidth("Options " + ELLIPSIS);
+  const int bheight = _font.getLineHeight() + 2;
+  const int vBtnWidth = bheight;
+
+  // buttonPanelWidth is the size of the button panel to the right of the CPU display
+  int buttonPanelWidth = bwidth + 5 + vBtnWidth + 5 + bwidth2 + 10;
+
+
+  // reposition buttons to stay against right side of panel area
+  int mainButtonX = _w - bwidth - 5;
+  int rewindButtonX = mainButtonX - (bheight + 5);
+  int optionButtonX = rewindButtonX - bwidth2 - 10;
+  int opsWidgetX = rewindButtonX - bwidth2 - 10;
+
+  for (auto *widget : wid2) {
+    widget->setPosX(mainButtonX);
+  }
+  myRewindButton->setPosX(rewindButtonX);
+  myUnwindButton->setPosX(rewindButtonX);
+  optionButton->setPosX(optionButtonX);
+  opsWidget->setPosX(opsWidgetX);
+
+  //-- CPU widget expands horizontally to fill the region
+  int cpuInfoWidth = _w - buttonPanelWidth - 10;
+  myCpu->setWidth(cpuInfoWidth);
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 SystemAreaPanel::~SystemAreaPanel() { // NOLINT (we need an empty d'tor)
 
 }

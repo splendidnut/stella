@@ -40,6 +40,7 @@ class CpuWidget : public Widget, public CommandSender
 
     // Get total height of this widget based on font provided
     static int calcHeight(const GUI::Font& font);
+    void setSize(int w, int h);
 
   private:
     void handleCommand(CommandSender* sender, int cmd, int data, int id) override;

@@ -159,6 +159,29 @@ int CpuWidget::calcHeight(const GUI::Font &font) {
   return (CPU_TEXT_ROWS * font.getLineHeight()) + PADDING;
 }
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void CpuWidget::setSize(int w, int h) {
+  Widget::setSize(w, h);
+
+  const int fontWidth  = _font.getMaxCharWidth(),
+      fontHeight = _font.getFontHeight(),
+      lineHeight = _font.getLineHeight();
+  constexpr int VGAP = 2;
+  const int lwidth = 4 * fontWidth;
+
+  // Resize textbox containing the current PC label
+  int xpos = lwidth + myPCGrid->getWidth() + 10;
+  myPCLabel->setWidth(_w - xpos - 10);
+
+  xpos = myCpuGridDecValue->getRight() + fontWidth * 2;
+  xpos += myCpuGridBinValue->getWidth() + 20;
+  const int src_w = _w - xpos;
+  for(int i = 0; i < 4; ++i)
+    myCpuDataSrc[i]->setWidth(src_w);
+  myCpuDataDest->setWidth(src_w);
+}
+
+
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void CpuWidget::setOpsWidget(DataGridOpsWidget* w)

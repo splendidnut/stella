@@ -643,7 +643,7 @@ void DebuggerDialog::calculateLayout() {
   constexpr int PADDING = 4;
 
   // The area showing the TIA image (NTSC and PAL supported, up to 274 lines without scaling)
-  int tiaHeight = std::max<uInt32>(FrameManager::Metrics::baseHeightPAL, _h * 0.35);
+  int tiaHeight = std::max<uInt32>(FrameManager::Metrics::baseHeightPAL, _h * 0.30);
 
   // The status area is the full area to the right of the TIA image
   // extending as far as necessary
@@ -655,8 +655,14 @@ void DebuggerDialog::calculateLayout() {
   tiaRect.setLayoutRect(0, 0, 320, tiaHeight);
   tiaStatusRect.setLayoutRect(tiaRect.getRight() + 1, 0, 225 + statusAreaExtraWidth, tiaRect.h() + PADDING);
 
-  // Calculate vertical division bar
+  // Calculate where vertical divider should be (clamp right-side width to 720)
   int xDiv = tiaStatusRect.getRight() + PADDING;
+  int xRightWidth = _w - xDiv;
+  if (xRightWidth > 720) {
+    xRightWidth = 720;
+    xDiv = _w - xRightWidth;
+  }
+
   int yDivTia = std::max<uInt32>(tiaRect.getBottom(), tiaStatusRect.getBottom()) + PADDING*2;
 
   // Tab area containing Prompt, TIA, Audio, Input tabs
@@ -666,12 +672,11 @@ void DebuggerDialog::calculateLayout() {
   //-------------------------------------------
   //------------------- Right side
 
-  int xRightWidth = _w - xDiv;
   int yDivCpu = SystemAreaPanel::calcHeight(*myLFont) + PADDING;
   int romTabAreaHeight = _h - yDivCpu - PADDING;
 
   // Atari 2600 System area (CPU + RIOT Memory Display)
-  // The ROM area is the full area to the right of the tabs
+  // The ROM area is the full area to the right of the tabs  (needs 520x278 min)
   cpuRiotRect.setLayoutRect(xDiv, 0, xRightWidth, yDivCpu);
 
   // Tab area containing Code Debugger and Cartridge tabs

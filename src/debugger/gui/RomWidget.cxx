@@ -40,7 +40,7 @@ RomWidget::RomWidget(GuiObject* boss, const GUI::Font& lfont, const GUI::Font& n
 
   xpos += t->getRight();
   myBank = new EditTextWidget(boss, nfont, xpos, ypos-2,
-                              _w - 2 - xpos, nfont.getLineHeight());
+                              _w - 4 - xpos, nfont.getLineHeight());
   myBank->setEditable(false);
 
   // Create rom listing
@@ -54,6 +54,11 @@ RomWidget::RomWidget(GuiObject* boss, const GUI::Font& lfont, const GUI::Font& n
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void RomWidget::setSize(int w, int h) {
   Widget::setSize(w, h);
+
+  // Setup some variables for handling the Filter label + field
+  const string& lblInfo = "Info ";
+  int lwInfo = _font.getStringWidth(lblInfo);
+  myBank->setWidth(w - lwInfo - 4);
 
   int newWidth = w - 4;
   int newHeight = h - (myBank->getHeight() + 7 + 4 + 2);  // magic numbers from constructor above

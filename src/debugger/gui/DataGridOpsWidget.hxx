@@ -41,6 +41,8 @@ class DataGridOpsWidget : public Widget, public CommandSender
     void setTarget(CommandReceiver* target) override;
     void setEnabled(bool e) override;
 
+    void setPosX(int newX) override;
+
   private:
     ButtonWidget* _zeroButton{nullptr};
     ButtonWidget* _invButton{nullptr};
@@ -49,6 +51,8 @@ class DataGridOpsWidget : public Widget, public CommandSender
     ButtonWidget* _decButton{nullptr};
     ButtonWidget* _shiftLeftButton{nullptr};
     ButtonWidget* _shiftRightButton{nullptr};
+
+    WidgetArray buttonList{};
 
   private:
     // Following constructors and assignment operators not supported

@@ -33,37 +33,44 @@ DataGridOpsWidget::DataGridOpsWidget(GuiObject* boss, const GUI::Font& font,
   _zeroButton = new ButtonWidget(boss, font, xpos, ypos, bwidth, bheight,
                                  "0", kDGZeroCmd);
   _zeroButton->setToolTip("Zero currently selected value (Z)");
+  buttonList.push_back(_zeroButton);
 
   ypos += bheight + space;
   _invButton = new ButtonWidget(boss, font, xpos, ypos, bwidth, bheight,
                                 "Inv", kDGInvertCmd);
   _invButton->setToolTip("Invert currently selected value (I)");
+  buttonList.push_back(_invButton);
 
   ypos += bheight + space;
   _incButton = new ButtonWidget(boss, font, xpos, ypos, bwidth, bheight,
                                 "++", kDGIncCmd);
   _incButton->setToolTip("Increase currently selected value. (=, Keypad +)");
+  buttonList.push_back(_incButton);
 
   ypos += bheight + space;
   _shiftLeftButton = new ButtonWidget(boss, font, xpos, ypos, bwidth, bheight,
                                       "<<", kDGShiftLCmd);
   _shiftLeftButton->setToolTip("Shift currently selected value left (,)");
+  buttonList.push_back(_shiftLeftButton);
 
   // Move to next column, skip a row
   xpos = x + bwidth + space;  ypos = y + bheight + space;
   _negButton = new ButtonWidget(boss, font, xpos, ypos, bwidth, bheight,
                                 "Neg", kDGNegateCmd);
   _negButton->setToolTip("Negate currently selected value (N)");
+  buttonList.push_back(_negButton);
 
   ypos += bheight + space;
   _decButton = new ButtonWidget(boss, font, xpos, ypos, bwidth, bheight,
                                 "--", kDGDecCmd);
   _decButton->setToolTip("Decrease currently selected value (-, Keypad -)");
+  buttonList.push_back(_decButton);
 
   ypos += bheight + space;
   _shiftRightButton = new ButtonWidget(boss, font, xpos, ypos, bwidth, bheight,
                                        ">>", kDGShiftRCmd);
   _shiftRightButton->setToolTip("Shift currently selected value right (.)");
+  buttonList.push_back(_shiftRightButton);
 
   // Calculate real dimensions
   _w = 2 * (bwidth+space);
@@ -71,13 +78,20 @@ DataGridOpsWidget::DataGridOpsWidget(GuiObject* boss, const GUI::Font& font,
 
   // We don't enable the buttons until the DataGridWidget is attached
   // Don't call setEnabled(false), since that does an immediate redraw
-  _zeroButton->clearFlags(Widget::FLAG_ENABLED);
-  _invButton->clearFlags(Widget::FLAG_ENABLED);
-  _negButton->clearFlags(Widget::FLAG_ENABLED);
-  _incButton->clearFlags(Widget::FLAG_ENABLED);
-  _decButton->clearFlags(Widget::FLAG_ENABLED);
-  _shiftLeftButton->clearFlags(Widget::FLAG_ENABLED);
-  _shiftRightButton->clearFlags(Widget::FLAG_ENABLED);
+  for (auto *widget : buttonList) {
+    widget->clearFlags(Widget::FLAG_ENABLED);
+  }
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void DataGridOpsWidget::setPosX(int newX) {
+  int oldX = _x;
+  Widget::setPosX(newX);
+
+  int delta = newX - oldX;
+  for (auto *widget : buttonList) {
+    widget->setPosX(widget->getLeft() + delta);
+  }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -95,11 +109,7 @@ void DataGridOpsWidget::setTarget(CommandReceiver* target)
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void DataGridOpsWidget::setEnabled(bool e)
 {
-  _zeroButton->setEnabled(e);
-  _invButton->setEnabled(e);
-  _negButton->setEnabled(e);
-  _incButton->setEnabled(e);
-  _decButton->setEnabled(e);
-  _shiftLeftButton->setEnabled(e);
-  _shiftRightButton->setEnabled(e);
+  for (auto *widget : buttonList) {
+    widget->setEnabled(e);
+  }
 }
