@@ -30,6 +30,7 @@ class LauncherFileListWidget;
 class RomImageWidget;
 class RomInfoWidget;
 class StaticTextWidget;
+class ResizerBarWidget;
 
 namespace Common {
   struct Size;
@@ -203,6 +204,8 @@ class LauncherDialog : public Dialog, CommandSender
 
     RomImageWidget*   myRomImageWidget{nullptr};
     RomInfoWidget*    myRomInfoWidget{nullptr};
+
+    ResizerBarWidget*     romAreaDividerWidget{nullptr};
 
     std::unordered_map<string,string> myMD5List;
 

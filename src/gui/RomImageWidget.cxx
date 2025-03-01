@@ -44,6 +44,14 @@ RomImageWidget::RomImageWidget(GuiObject* boss, const GUI::Font& font,
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+void RomImageWidget::setSize(int w, int h) {
+  Widget::setSize(w, h);
+  myImageHeight = _h - labelHeight(_font) - _font.getFontHeight() / 4 - 1;
+  myZoomRect = Common::Rect(_w * 7 / 16, myImageHeight * 7 / 16,
+                            _w * 9 / 16, myImageHeight * 9 / 16);
+}
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void RomImageWidget::setProperties(const FSNode& node,
                                    const Properties& properties, bool full)
 {

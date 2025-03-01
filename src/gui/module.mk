@@ -46,6 +46,7 @@ MODULE_OBJS := \
         src/gui/QuadTariDialog.o \
         src/gui/R77HelpDialog.o \
         src/gui/RadioButtonWidget.o \
+        src/gui/ResizerBarWidget.o \
         src/gui/RomAuditDialog.o \
         src/gui/RomImageWidget.o \
         src/gui/RomInfoWidget.o \

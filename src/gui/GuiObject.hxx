@@ -64,7 +64,8 @@ class GuiObject : public CommandReceiver
       kNextCmd         = 'NEXT',
       kPrevCmd         = 'PREV',
       kDefaultsCmd     = 'DEFA',
-      kSetPositionCmd  = 'SETP'
+      kSetPositionCmd  = 'SETP',
+      kResizeCmd       = 'RSIZ'
     };
 
   public:

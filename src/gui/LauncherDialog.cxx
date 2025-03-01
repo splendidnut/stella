@@ -62,6 +62,7 @@
 #include "MediaFactory.hxx"
 #include "LauncherDialog.hxx"
 #include "Random.hxx"
+#include "ResizerBarWidget.hxx"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 LauncherDialog::LauncherDialog(OSystem& osystem, DialogContainer& parent,
@@ -460,33 +461,37 @@ void LauncherDialog::recalcLayoutBoxes(int y) {
   const int imageWidth = imgZoom * TIAConstants::viewableWidth;
   const int listWidth = _w - (imageWidth > 0 ? imageWidth + fontWidth : 0) - HBORDER * 2;
 
+  int imageHeight = imgZoom * TIAConstants::viewableHeight;
+
+  int xpos = HBORDER;
+  int ypos = romListPosY;
   //-----------------------------------
   // now do layout of three main boxes
 
-  romListRect.setLayoutRect(HBORDER, romListPosY, listWidth, listHeight);
+  romListRect.setLayoutRect(xpos, ypos, listWidth, listHeight);
 
   // check to see if ROM image and info boxes are shown
   if (imageWidth > 0) {
 
-    int xpos = HBORDER + listWidth + fontWidth;
+    xpos += + listWidth + fontWidth;
 
     // Calculate font area, and in the process the font that can be used
     // Info font is unknown yet, but used in image label too. Assuming maximum font height.
 
-    int imageHeight = imageWidth + RomImageWidget::labelHeight(_font);
     if (myROMInfoFont == nullptr) {
+      int testImageHeight = imageHeight + RomImageWidget::labelHeight(_font);
       const Common::Size fontArea(imageWidth - fontWidth * 2,
-                                  listHeight - imageHeight - VGAP * 4);
+                                  listHeight - testImageHeight - VGAP * 4);
       setRomInfoFont(fontArea);
     }
-    imageHeight = imageWidth + RomImageWidget::labelHeight(*myROMInfoFont);
+    imageHeight = imageHeight + RomImageWidget::labelHeight(*myROMInfoFont);
 
-    romImageRect.setLayoutRect(xpos, romListPosY, imageWidth, imageHeight);
+    romImageRect.setLayoutRect(xpos, ypos, imageWidth, imageHeight);
 
     int infoOfs = imageHeight + myROMInfoFont->getFontHeight() / 2;
     int infoHeight = listHeight - infoOfs;
 
-    romInfoRect.setLayoutRect(xpos, romListPosY + infoOfs, imageWidth, infoHeight);
+    romInfoRect.setLayoutRect(xpos, ypos + infoOfs, imageWidth, infoHeight);
   }
 }
 
@@ -500,6 +505,8 @@ void LauncherDialog::recalcLayoutBoxes(int y) {
 //    - resize and reposition the ROM Info box (myRomInfoWidget)
 
 void LauncherDialog::refreshLayout() {
+  const int fontWidth    = Dialog::fontWidth();
+
   recalcLayoutBoxes(romListPosY);
   refreshLayoutNav();
   if (myUseMinimalUI) {
@@ -512,6 +519,12 @@ void LauncherDialog::refreshLayout() {
   if (romImageRect.w() > 0) {
     myRomImageWidget->setRect(romImageRect);
     myRomInfoWidget->setRect(romInfoRect);
+
+    //--- Resize widget needs to be completely reset for new window size
+    romAreaDividerWidget->setPos(romListRect.getRight() + 2, romListRect.y());
+    romAreaDividerWidget->setSize(fontWidth - 4, romListRect.h());
+    romAreaDividerWidget->setLimits(_w / 2, _w * 4 / 5);
+
   }
 }
 
@@ -519,15 +532,8 @@ void LauncherDialog::refreshLayout() {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 int LauncherDialog::addRomWidgets(int ypos)
 {
-  const bool bottomButtons = instance().settings().getBool("launcherbuttons");
-  const int fontWidth    = Dialog::fontWidth(),
-            VBORDER      = Dialog::vBorder(),
-            HBORDER      = Dialog::hBorder(),
-            VGAP         = Dialog::vGap(),
-            buttonHeight = myUseMinimalUI
-              ? -VGAP * 2
-              : bottomButtons ? Dialog::buttonHeight() : -VGAP * 2;
-  int xpos = HBORDER;
+  const int fontWidth = Dialog::fontWidth();
+
   WidgetArray wid;
 
   // Add list with game titles
@@ -535,11 +541,9 @@ int LauncherDialog::addRomWidgets(int ypos)
 
   recalcLayoutBoxes(ypos);
 
-  const int imageWidth = _w - romListRect.w() - (HBORDER * 3);
-
   // remember initial ROM directory for returning there via home button
   instance().settings().setValue("startromdir", getRomDir());
-  myList = new LauncherFileListWidget(this, _font, xpos, ypos, romListRect.w(), romListRect.h());
+  myList = new LauncherFileListWidget(this, _font, romListRect.x(), romListRect.y(), romListRect.w(), romListRect.h());
   myList->setEditable(false);
   myList->setListMode(FSNode::ListMode::All);
   // since we cannot know how many files there are, use are really high value here
@@ -547,33 +551,24 @@ int LauncherDialog::addRomWidgets(int ypos)
   myList->progress().setMessage("        Filtering files" + ELLIPSIS + "        ");
   wid.push_back(myList);
 
+  romAreaDividerWidget = new ResizerBarWidget(this, _font, romListRect.getRight() + 2, romListRect.y(),
+                                          fontWidth - 4, romListRect.h(), ResizeDir::Horizontal);
+  romAreaDividerWidget->setLimits(_w / 2, _w * 4 / 5);
+  romAreaDividerWidget->setTarget(this);
+  wid.push_back(romAreaDividerWidget);
+
   // Add ROM info area (if enabled)
-  if(imageWidth > 0)
+  if(romImageRect.w() > 0)
   {
-    xpos += romListRect.w() + fontWidth; //myList->getWidth() + fontWidth;
 
-    // Initial surface size is the viewable area's width squared
-    const Common::Size imgSize(imageWidth, imageWidth);
-
-    // Calculate font area, and in the process the font that can be used
-    // Infofont is unknown yet, but used in image label too. Assuming maximum font height.
-    int imageHeight = imgSize.h + RomImageWidget::labelHeight(_font);
-
-    const Common::Size fontArea(imageWidth - fontWidth * 2,
-      myList->getHeight() - imageHeight - VGAP * 4);
-    setRomInfoFont(fontArea);
-
-    // Now we have the correct font height
-    imageHeight = imgSize.h + RomImageWidget::labelHeight(*myROMInfoFont);
-    myRomImageWidget = new RomImageWidget(this, *myROMInfoFont,
-      xpos, ypos, imageWidth, imageHeight);
+    myRomImageWidget = new RomImageWidget(this, *myROMInfoFont, romImageRect.x(), romImageRect.y(),
+                                          romImageRect.w(), romImageRect.h());
 
     if(!myUseMinimalUI)
       wid.push_back(myRomImageWidget);
 
-    const int yofs = imageHeight + myROMInfoFont->getFontHeight() / 2;
-    myRomInfoWidget = new RomInfoWidget(this, *myROMInfoFont,
-      xpos, ypos + yofs, imageWidth, myList->getHeight() - yofs);
+    myRomInfoWidget = new RomInfoWidget(this, *myROMInfoFont, romInfoRect.x(), romInfoRect.y(),
+                                        romInfoRect.w(), romInfoRect.h());
   }
   return addToFocusList(wid);
 }
@@ -1346,6 +1341,17 @@ void LauncherDialog::handleCommand(CommandSender* sender, int cmd,
       if(url != EmptyString)
         MediaFactory::openURL(url);
       break;
+    }
+    case kResizeCmd:
+    {
+      const int resizerPos = (data + romListRect.getLeft());
+      const float viewerWidthPercent = (romImageRect.getRight() - resizerPos) / (float)romImageRect.getRight();
+      if (viewerWidthPercent > 0.1 && viewerWidthPercent < 0.5) {
+        cout << "Resize percent: " << viewerWidthPercent << '\n';
+        const float zoom = viewerWidthPercent * _w / TIAConstants::viewableWidth;
+        instance().settings().setValue("romviewer", zoom);
+        refreshLayout();
+      }
     }
 
     default:
