@@ -526,6 +526,7 @@ void LauncherDialog::refreshLayout() {
     romAreaDividerWidget->setLimits(_w / 2, _w * 4 / 5);
 
   }
+  setFocus(myList);
 }
 
 
@@ -747,6 +748,7 @@ void LauncherDialog::loadConfig()
   }
 
   myList->clearFlags(Widget::FLAG_WANTS_RAWDATA); // always reset this
+  setFocus(myList);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
